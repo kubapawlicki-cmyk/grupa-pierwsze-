@@ -59,3 +59,29 @@ if products_query.data:
             st.rerun()
 else:
     st.info("Brak produktów w bazie.")
+# --- SEKCJA 2: LISTA I USUWANIE ---
+st.subheader("Aktualna lista produktów")
+
+try:
+    # Próba pobrania danych wraz z relacją do kategorii
+    response = supabase.table("produkty").select("id, nazwa, liczba, cena, kategoria_id").execute()
+    products = response.data
+
+    if products:
+        for prod in products:
+            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+            
+            col1.write(f"**{prod['nazwa']}** (ID Kat: {prod['kategoria_id']})")
+            col2.write(f"{prod['cena']} zł")
+            col3.write(f"Sztuk: {prod['liczba']}")
+            
+            # Przycisk usuwania
+            if col4.button("Usuń", key=f"del_{prod['id']}"):
+                supabase.table("produkty").delete().eq("id", prod['id']).execute()
+                st.rerun()
+    else:
+        st.info("Brak produktów w bazie.")
+
+except Exception as e:
+    st.error(f"Wystąpił błąd podczas pobierania danych: {e}")
+    st.info("Upewnij się, że nazwy tabel w Supabase są identyczne jak na obrazku (produkty, kategorie).")
